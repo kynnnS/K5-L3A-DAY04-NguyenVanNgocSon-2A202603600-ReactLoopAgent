@@ -1,6 +1,6 @@
 # Ghi chú phân tích · Day 04
 
-Họ và tên: Nguyen Van Ngoc Son
+Họ và tên: Nguyễn Văn Ngọc Sơn
 MSSV: 2A202603600
 
 Cấu hình cả hai lần chạy: agent `gemini` / `gemini-3.5-flash-lite`, judge cùng model, snapshot, `max_steps = 8`, dataset `core` (22 case).
