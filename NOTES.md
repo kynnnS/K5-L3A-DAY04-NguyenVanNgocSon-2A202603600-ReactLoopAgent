@@ -52,7 +52,7 @@ Nguyên nhân có thể:
 - Quá trình lặp (trung thực về số lần chạy):
   - Thử từng case bằng `--case` sau mỗi thay đổi prompt (H7, H2, A2, H4, H5, H6…).
   - Hai lần chạy `eval_after` đầu bị dừng giữa chừng do Gemini trả 429 kéo dài hơn thời gian retry cũ (~30 giây) → tăng số lần retry.
-  - Một lần chạy đầy đủ với prompt trung gian đạt 99.91, nhưng khi đọc lại trace thấy **H8 không gọi tool nào** mà trả lời chỉ dựa trên phần mô tả tool trong prompt (judge vẫn cho 100). Đây là lỗi do chính phần "Hiểu công cụ" gây ra → thêm "trong phạm vi thì luôn gọi tool trước khi trả lời". Sau sửa, H8 gọi `get_status` cho cả hai provider và liệt kê incident thật trong snapshot trước khi nêu giới hạn. `eval_after.json` là lần chạy với code cuối cùng.
+  - Một lần chạy đầy đủ với prompt trung gian đạt 99.91, nhưng khi đọc lại trace thấy **H8 không gọi tool nào** mà trả lời chỉ dựa trên phần mô tả tool trong prompt (judge vẫn cho 100). Đây là lỗi do chính phần "Hiểu công cụ" gây ra → thêm "trong phạm vi thì luôn gọi tool trước khi trả lời". Sau sửa, H8 gọi `get_status` cho cả hai provider và liệt kê incident thật trong snapshot trước khi nêu giới hạn. `eval_after.json` là lần chạy với phiên bản cuối của nhánh bài chính (xem thêm "Ghi chú về `eval_after.json`" ở cuối file).
 - Vì sao chọn thay đổi này:
   - Lỗi H7 là lỗi về **boundaries** (bịa trạng thái), nguy hiểm nhất trong bối cảnh điều tra sự cố: báo "operational" sai có thể khiến người dùng bỏ qua sự cố thật. Trace cho thấy loop đã đưa đủ thông tin (`TimeoutError`) cho model, nên cần sửa ở **prompt** chứ không phải ở loop.
   - Kiểm tra nguồn đặt trong **loop** vì đó là ràng buộc kiểm chứng được bằng code, không phụ thuộc model có nhớ chỉ dẫn hay không (A2 cho thấy prompt "dẫn nguồn" là chưa đủ).
@@ -91,7 +91,7 @@ Chi phí tính theo giá `gemini-3.5-flash-lite` (0.30 USD vào / 2.50 USD ra m�
 - **Quy tắc prompt không phải bảo đảm cứng.** Model vẫn có thể làm theo yêu cầu bịa ở câu hỏi khác; chưa có kiểm tra bằng code cho "không suy trạng thái từ lỗi tool".
 - **Snapshot cố định** (09/11/2026), không phản ánh tình trạng thực tế; tool chỉ tìm chuỗi trong 50 incident gần nhất và cắt update dài, nên agent không thể trả lời đầy đủ các câu như A5/H8.
 - **Mỗi phiên bản chỉ chạy một lần**, model có tính ngẫu nhiên; chênh lệch điểm giữa hai lần chạy có thể một phần do nhiễu, không chỉ do thay đổi. Cần nhiều lần chạy để kết luận về độ ổn định.
-- **Hạ tầng:** Gemini trả 429 tạm thời; retry giúp hoàn tất eval nhưng làm thời gian chạy dài hơn, và nếu quota bị chặn lâu hơn ~30 giây thì case vẫn `unscored` và phải chạy lại.
+- **Hạ tầng:** Gemini trả 429 tạm thời; retry giúp hoàn tất eval nhưng làm thời gian chạy dài hơn, và nếu quota bị chặn lâu hơn thời gian retry (~2 phút) thì case vẫn `unscored` và phải chạy lại.
 
 ## Bonus: 5 status API (`eval_bonus.json`)
 

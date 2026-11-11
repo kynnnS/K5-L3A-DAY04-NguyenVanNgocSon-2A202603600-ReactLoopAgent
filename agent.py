@@ -49,7 +49,7 @@ EXTRA_TOOLSET_RULES = '''# Quy tắc bổ sung của agent
 RATE_LIMIT_MAX_ATTEMPTS = 3   # Số lần tối đa một (tool, provider) được gọi khi liên tục bị 429.
 MAX_RETRY_WAIT_SECONDS = 10   # Retry-After dài hơn mức này thì dừng thay vì chờ.
 
-EMPTY_ANSWER_NUDGE ='Bạn chưa đưa ra câu trả lời. Hãy trả lời câu hỏi dựa trên kết quả tool đã có.'
+EMPTY_ANSWER_NUDGE = 'Bạn chưa đưa ra câu trả lời. Hãy trả lời câu hỏi dựa trên kết quả tool đã có.'
 MISSING_SOURCE_NUDGE = ('Câu trả lời chưa dẫn URL nguồn của incident đã đọc. Hãy viết lại câu trả lời, giữ nội dung '
                         'có căn cứ và ghi rõ URL nguồn (chép đúng từ tool): {urls}')
 
