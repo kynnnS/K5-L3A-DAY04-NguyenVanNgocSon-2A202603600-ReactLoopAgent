@@ -14,7 +14,7 @@ CONFIG = {
 
 
 RETRY_STATUS = {429, 500, 502, 503, 504}  # Lỗi tạm thời: quá tải / rate limit / lỗi server.
-MAX_RETRIES = int(os.getenv('LLM_MAX_RETRIES', '4'))
+MAX_RETRIES = int(os.getenv('LLM_MAX_RETRIES', '6'))  # 2+4+8+16+32+60 ≈ 2 phút chờ tối đa.
 MAX_WAIT_SECONDS = 60
 
 
