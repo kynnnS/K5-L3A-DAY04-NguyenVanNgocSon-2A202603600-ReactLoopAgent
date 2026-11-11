@@ -1,6 +1,7 @@
 """Bốn provider cùng một interface. Không chứa agent loop."""
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 
@@ -12,16 +13,33 @@ CONFIG = {
 }
 
 
+RETRY_STATUS = {429, 500, 502, 503, 504}  # Lỗi tạm thời: quá tải / rate limit / lỗi server.
+MAX_RETRIES = int(os.getenv('LLM_MAX_RETRIES', '4'))
+MAX_WAIT_SECONDS = 60
+
+
+def _retry_delay(exc, attempt):
+    """Ưu tiên Retry-After (giây) từ server; nếu không có thì backoff 2, 4, 8, 16... giây."""
+    try:
+        return min(float(exc.headers.get('Retry-After')), MAX_WAIT_SECONDS)
+    except (TypeError, ValueError, AttributeError):
+        return min(2 ** (attempt + 1), MAX_WAIT_SECONDS)
+
+
 def post_json(url, headers, payload):
     req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json', **headers})
-    try:
-        with urllib.request.urlopen(req, timeout=60) as response:
-            return json.load(response)
-    except urllib.error.HTTPError as exc:
-        # Do not print response bodies: they may contain account or request data.
-        raise RuntimeError(f'Provider trả HTTP {exc.code}; kiểm tra model, key và quota.') from exc
-    except urllib.error.URLError as exc:
-        raise RuntimeError(f'Không kết nối được provider: {exc.reason}') from exc
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=60) as response:
+                return json.load(response)
+        except urllib.error.HTTPError as exc:
+            if exc.code in RETRY_STATUS and attempt < MAX_RETRIES:
+                time.sleep(_retry_delay(exc, attempt))  # Giới hạn số lần thử, không gọi liên tục.
+                continue
+            # Do not print response bodies: they may contain account or request data.
+            raise RuntimeError(f'Provider trả HTTP {exc.code}; kiểm tra model, key và quota.') from exc
+        except urllib.error.URLError as exc:
+            raise RuntimeError(f'Không kết nối được provider: {exc.reason}') from exc
 
 
 class Provider:
